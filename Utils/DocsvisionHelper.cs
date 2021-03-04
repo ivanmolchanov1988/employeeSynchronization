@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
- 
+
 using DocsVision.ApprovalDesigner.ObjectModel.Mapping;
 using DocsVision.ApprovalDesigner.ObjectModel.Services;
 using DocsVision.BackOffice.CardLib.CardDefs;
@@ -42,7 +42,7 @@ public class DocsvisionHelper
     //Сотрудники
 
     //im public string AddEmployee(string code, string familyName, string firstName, string middleName, bool? actual, string titleId,
-	public bool AddEmployee(string code, string familyName, string firstName, string middleName, bool? actual, string titleId,
+	public object AddEmployee(string code, string familyName, string firstName, string middleName, bool? actual, string titleId,
                             string title, int routingType, string departmentCode, string email, string employeeChief)
     {
         try
@@ -52,13 +52,13 @@ public class DocsvisionHelper
             {
                 //logger.Info(requestEmptyField);
                 //im return requestEmptyField;
-				return false;
+				return true;
             }
 
             if (!actual.HasValue || !actual.Value)
 			{
                 //im return "Сотрудник неактуален, добавление не произведено.";
-				return false;
+				return true;
 			}
 			
 			//Поиск сотрудника ***
@@ -73,8 +73,8 @@ public class DocsvisionHelper
 				//im if (department == null)
 				if (departmentColl == null || departmentColl.Count == 0 || departmentColl.Count > 1)
 				{
-					//im return "Не найдено подразделение.";
-					return false;
+					return "Не найдено подразделение.";
+					//return false;
 				}
 				RowData department = departmentColl[0];
 
@@ -118,23 +118,23 @@ public class DocsvisionHelper
 				
 				return (SearchEmployeeTest(refStaffData, code)
 								? true
-								: false);
+								: true); // создал, но не подтвердил
 			}
 			else
 			{
 				//im return "Сотрудник уже есть в справочнике";
-				return false;
+				return true;
 			}
         }
         catch (Exception ex)
         {
             //im return string.Format("Ошибка создания сотрудника {0}", ex.Message);
-			return false;
+			return "Не удалось добавить сотрудника в справочник.";
         }
     }
 
     //im public string UpdateEmployee(string code, string familyName, string firstName, string middleName, bool? actual, string titleId,
-	public bool UpdateEmployee(string code, string familyName, string firstName, string middleName, bool? actual, string titleId,
+	public object UpdateEmployee(string code, string familyName, string firstName, string middleName, bool? actual, string titleId,
                             string title, int routingType, string departmentCode, string email, string employeeChief)
     {
         string requestEmptyField = GetRequestEmployee(code, familyName, departmentCode, actual);
@@ -142,24 +142,35 @@ public class DocsvisionHelper
         {
             //logger.Info(requestEmptyField);
             //im return requestEmptyField;
-			return false;
+			return true;
         }
-
+		
         CardData refStaffData = Session.CardManager.GetDictionaryData(RefStaff.ID);
 
         // Поиск пользователя
 		//var rowColl = new RowDataCollection<RowData>(); //im
 		
         //im RowData employeeDocsvision = GetExistObject(RefStaff.Employees.ID, RefStaff.Employees.IDCode, code);
-		RowDataCollection employeeDocsvisionColl = GetExistObject(RefStaff.Employees.ID, RefStaff.Employees.IDCode, code);
+		RowDataCollection employeeDocsvisionColl = null;
+		try{
+			employeeDocsvisionColl = GetExistObject(RefStaff.Employees.ID, RefStaff.Employees.IDCode, code);
+		}
+		catch{}
+		
         //im if (employeeDocsvision == null)
-		if (employeeDocsvisionColl.Count == 0 || employeeDocsvisionColl == null || employeeDocsvisionColl.Count > 1)
+			/*
+		if (employeeDocsvisionColl == null || employeeDocsvisionColl.Count == 0 || employeeDocsvisionColl.Count > 1)
         {
             //im var accountNameFromAd = GetAccountFromAD(familyName, firstName, middleName, email);
             //im employeeDocsvision = GetExistObject(RefStaff.Employees.ID, RefStaff.Employees.AccountName, accountNameFromAd);
-			return false;
+			return true;
         }
-		RowData employeeDocsvision = employeeDocsvisionColl[0];
+		*/
+		RowData employeeDocsvision = null;
+		try{
+			employeeDocsvision = employeeDocsvisionColl[0];
+		}
+		catch{}
 		
         //im if (employeeDocsvision == null)
 		if (employeeDocsvision == null)
@@ -171,13 +182,17 @@ public class DocsvisionHelper
 
         //Поиск подразделения
         //im RowData department = GetExistObject(RefStaff.Units.ID, RefStaff.Units.Code, departmentCode);
-		RowDataCollection departmentColl = GetExistObject(RefStaff.Units.ID, RefStaff.Units.Code, departmentCode);
-        //im if (department == null)
+		RowDataCollection departmentColl = null;
+		try{
+			departmentColl = GetExistObject(RefStaff.Units.ID, RefStaff.Units.Code, departmentCode);
+        }
+		catch{}
+		//im if (department == null)
 		if (departmentColl == null || departmentColl.Count == 0 || departmentColl.Count > 1)
         {
             //logger.Info("Не найдено подразделение сотрудника.");
             //im return "Не найдено подразделение сотрудника.";
-			return false;
+			return "Не найдено подразделение для сотрудника.";
         }
 		RowData department = departmentColl[0];
 		
@@ -487,7 +502,7 @@ public class DocsvisionHelper
 
     //Подразделения
     //im public string AddDepartment(string unitId, string unit, string unitFull, string ownerId, string chief, string curator)
-	public bool AddDepartment(string unitId, string unit, string unitFull, string ownerId, string chief, string curator)
+	public object AddDepartment(string unitId, string unit, string unitFull, string ownerId, string chief, string curator)
     {
 		
 		try{
@@ -496,7 +511,7 @@ public class DocsvisionHelper
 			{
 				//logger.Info(string.Format(base.LogEmptyInfo, "Unit"));
 				//return string.Format(LogEmptyInfo, "Unit");
-				return false;
+				return true;
 			}
 			
 			CardData refStaffData = Session.CardManager.GetDictionaryData(RefStaff.ID);
@@ -530,8 +545,8 @@ public class DocsvisionHelper
 				var isFirstLoad = ConfigurationManager.AppSettings["FirstLoad"];
 				if (isFirstLoad == "1")
 				{
-					newRowDepartment[RefStaff.Units.Name] = unitFull;
-					newRowDepartment[RefStaff.Units.FullName] = unit;
+					newRowDepartment[RefStaff.Units.Name] = unit;
+					newRowDepartment[RefStaff.Units.FullName] = unitFull;
 				}
 				else
 				{
@@ -572,42 +587,47 @@ public class DocsvisionHelper
 			}
 			else{
 				//return "Подразделение уже добавлено";
-				return false;
+				return true;
 			}
 		}
 		catch{
 			CardData refStaffData = Session.CardManager.GetDictionaryData(RefStaff.ID);
 			refStaffData.BeginUpdate();
 			refStaffData.EndUpdate();
-			//return "Ошибка при попытке добавить департамент. Необходимо перезапустить сервис!";
-			return false;
+			return "Ошибка при попытке добавить новое подразделение. Необходимо перезапустить сервис!";
+			//return false;
 		}
     }
 
     //public string UpdateDepartment(string unitId, string unit, string unitFull, string ownerId, string chief, string curator)
-	public bool UpdateDepartment(string unitId, string unit, string unitFull, string ownerId, string chief, string curator)
+	public object UpdateDepartment(string unitId, string unit, string unitFull, string ownerId, string chief, string curator)
     {
         if (string.IsNullOrEmpty(unit))
         {
             //logger.Info(string.Format(LogEmptyInfo, "Unit"));
             //return string.Format(LogEmptyInfo, "Unit");
-			return false;
+			return true;
         }
-
+		
         CardData refStaffData = Session.CardManager.GetDictionaryData(RefStaff.ID);
         SectionData unitsSection = refStaffData.Sections[RefStaff.Units.ID];
-
+		
         //im RowData department = GetExistObject(RefStaff.Units.ID, RefStaff.Units.Code, unitId);
 		RowDataCollection departmentColl = GetExistObject(RefStaff.Units.ID, RefStaff.Units.Code, unitId);
-		RowData department = departmentColl[0];
+		RowData department = null;
+		try{
+			department = departmentColl[0];
+		}
+		catch{}
+		
         if (department == null)
             return AddDepartment(unitId, unit, unitFull, ownerId, chief, curator);
-
+		
         refStaffData.BeginUpdate();
-
+		
         //Родитель
 		if (ownerId == unitId)
-			return false;
+			return true;
         var existedParentDepartmentCode = department.ParentRow[RefStaff.Units.Code];
         if (!(existedParentDepartmentCode == null && ownerId == null) && !ownerId.Equals(existedParentDepartmentCode))
         {
@@ -623,29 +643,52 @@ public class DocsvisionHelper
         refStaffData.EndUpdate();
 
         refStaffData.BeginUpdate();
-        var isFirstLoad = ConfigurationManager.AppSettings["FirstLoad"];
-        if (isFirstLoad == "1")
-        {
-            department[RefStaff.Units.Name] = unitFull;
-            department[RefStaff.Units.FullName] = unit;
-        }
-        else
-        {
-            department[RefStaff.Units.Name] = unit;
-            department[RefStaff.Units.FullName] = unitFull;
-        }
-        department[RefStaff.Units.Code] = unitId;
-
-        //Руководитель подразделения
-        UpdateDepartmentChief(department, refStaffData, chief);
-
-        //Куратор подразделения
-        UpdateDepartmentCurator(department, refStaffData, curator);
-
-        refStaffData.EndUpdate();
-		
-		//return "Департамент обновлен";
-		return true;
+		try{
+			var isFirstLoad = ConfigurationManager.AppSettings["FirstLoad"];
+			if (isFirstLoad == "1")
+			{
+				department[RefStaff.Units.Name] = unit;
+				department[RefStaff.Units.FullName] = unitFull;
+			}
+			else
+			{
+				department[RefStaff.Units.Name] = unit;
+				department[RefStaff.Units.FullName] = unitFull;
+			}
+			department[RefStaff.Units.Code] = unitId;
+			
+			//Руководитель подразделения
+			if(chief != string.Empty)
+			{
+				try{
+				UpdateDepartmentChief(department, refStaffData, chief);
+				}
+				catch{
+					refStaffData.EndUpdate();
+					return "Руководитель не найден.";
+				}
+			}
+			
+			//Куратор подразделения
+			if(curator != string.Empty)
+			{
+				try{
+				UpdateDepartmentCurator(department, refStaffData, curator);
+				}
+				catch{
+					refStaffData.EndUpdate();
+					return "Куратор не найден.";
+				}
+			}
+			
+			refStaffData.EndUpdate();
+			
+			//return "Департамент обновлен";
+			return true;
+		}
+		catch{
+			return "Ошибка при попытке обновить подразделение. Необходимо перезапустить сервис!";
+		}
     }
 
 

@@ -10,7 +10,7 @@ using DocsVision.BackOffice.CardLib.CardDefs;
 using DocsVision.Platform.ObjectModel;
 using DocsVision.BackOffice.ObjectModel.Services;
 using DocsVision.BackOffice.ObjectModel;
- 
+
 public class DocsVisionFilesHelper
 {
 	// Родительская папка (обозначена RootFolderGuid в app.config), в которой находяться папки пользователей
